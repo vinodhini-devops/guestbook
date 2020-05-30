@@ -1,0 +1,73 @@
+steps:
+#First Clone from Google Cloud Source Repository  
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone','https://source.developers.google.com/p/${_PROJECT}/r/${_REPO_NAME}']
+
+
+#start by deploying our Redis master:
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['create', '-f', 'redis-master-deployment.yaml']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+  
+#the Redis master service:
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['create', '-f', 'redis-slave-deployment.yaml']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}' 
+ 
+#the Redis master service:
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['create', '-f', 'redis-slave-service.yaml']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+
+#the frontend:
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['create', '-f', 'frontend-deployment.yaml']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+  
+#the frontend service:
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['create', '-f', 'frontend-service.yaml']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'  
+  
+#Get the pods
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['get', 'pods']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+#Get the deployment
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['get', 'deployments']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'  
+
+#Get the services
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['get', 'svc']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+
+substitutions:
+    #GCP Specific configuration. Please DON'T change anything
+    _PROJECT: nice-gate-272207
+    _ZONE: asia-east1-a
+    _GKE_CLUSTER: cluster-1	
+
+#Repository Specific configuration. DevOps can change this settings 
+    _REPO_NAME: github_vinodhini-devops_guestbook
+    
+    # Developers ONLY change
+    _VERSION: v1.0
+    
